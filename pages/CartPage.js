@@ -18,4 +18,8 @@ export class CartPage {
   async continueShopping() {
     await this.page.locator(this.locators.continueShoppingButton).click();
   }
+
+  async clickCheckoutButton() {
+    await this.page.locator(this.locators.checkoutButton).click();
+  }
 }

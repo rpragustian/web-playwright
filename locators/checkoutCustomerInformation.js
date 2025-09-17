@@ -3,7 +3,7 @@
  * Contains all CSS selectors and locators for the Checkout Customer Information page
  */
 export const CheckoutCustomerInformationLocators = {
-  title: '[data-test="title"]text("Checkout: Your Information")',
+  title: '[data-test="title"]',
   firstNameInput: '#first-name',
   lastNameInput: '#last-name',
   postalCodeInput: '#postal-code',

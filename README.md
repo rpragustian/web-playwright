@@ -10,14 +10,21 @@ This project uses Playwright for end-to-end testing with a Page Object Model (PO
 │   ├── index.js                  # Central export point for all locators
 │   ├── LandingPageLocators.js    # Landing page selectors
 │   ├── ProductPageLocators.js    # Product page selectors
-│   └── CartPageLocators.js       # Cart page selectors
+│   ├── CartPageLocators.js       # Cart page selectors
+│   ├── checkoutCustomerInformation.js  # Checkout info page selectors
+│   ├── checkoutOverview.js       # Checkout overview page selectors
+│   └── checkoutStatus.js         # Checkout status page selectors
 ├── pages/                        # Page Object Model classes
 │   ├── LandingPage.js            # Landing page object with methods
 │   ├── ProductPage.js            # Product page object with methods
-│   └── CartPage.js               # Cart page object with methods
+│   ├── CartPage.js               # Cart page object with methods
+│   ├── checkoutCustomerInformation.js  # Checkout info page object
+│   ├── checkoutOverview.js       # Checkout overview page object
+│   └── checkoutStatus.js         # Checkout status page object
 ├── tests/                        # Test specifications
 │   ├── login.spec.js             # Login functionality tests
-│   └── addToCart.spec.js         # Add to cart functionality tests
+│   ├── addToCart.spec.js         # Add to cart functionality tests
+│   └── checkout.spec.js          # Complete checkout process tests
 ├── playwright-report/            # HTML test reports (generated)
 ├── test-results/                 # Test execution results (generated)
 ├── .env                          # Environment variables (create manually)
@@ -74,6 +81,7 @@ This project uses Playwright for end-to-end testing with a Page Object Model (PO
 ### Advanced Options
 - **Run specific test file:** `npx playwright test tests/login.spec.js`
 - **Run add to cart tests:** `npx playwright test tests/addToCart.spec.js`
+- **Run checkout tests:** `npx playwright test tests/checkout.spec.js`
 - **Run tests with specific browser:** `npx playwright test --project=chromium`
 - **Run tests in headed mode:** `npx playwright test --headed`
 - **Generate and view report:** `npx playwright show-report`
@@ -86,12 +94,18 @@ The framework uses a clean separation of concerns with three main components:
 - **LandingPageLocators.js**: Contains all CSS selectors for the landing page
 - **ProductPageLocators.js**: Contains selectors for product page elements
 - **CartPageLocators.js**: Contains selectors for cart page elements
+- **checkoutCustomerInformation.js**: Contains selectors for checkout form
+- **checkoutOverview.js**: Contains selectors for checkout summary
+- **checkoutStatus.js**: Contains selectors for order completion
 - **Benefits**: Easy maintenance, reusability, clear separation
 
 ### 2. **Page Objects** (`/pages/`)
 - **LandingPage.js**: Contains login and navigation methods
 - **ProductPage.js**: Contains product interaction methods
 - **CartPage.js**: Contains cart verification and management methods
+- **checkoutCustomerInformation.js**: Contains checkout form methods
+- **checkoutOverview.js**: Contains order summary methods
+- **checkoutStatus.js**: Contains order completion methods
 - **Clean methods**: Focus on actions and assertions
 
 ### 3. **Environment Configuration**
@@ -115,35 +129,43 @@ The framework uses a clean separation of concerns with three main components:
 - ✅ **Product verification in cart** - Confirms products appear in cart
 - ✅ **Cart management** - Tests removing items and continuing shopping
 
+### Checkout Tests (`tests/checkout.spec.js`)
+- ✅ **Complete checkout process** - End-to-end checkout workflow
+- ✅ **Customer information form** - Tests form filling and validation
+- ✅ **Order overview verification** - Validates order details and pricing
+- ✅ **Order completion** - Tests successful order placement
+- ✅ **Post-checkout verification** - Confirms cart is cleared after order
+
 ### Test Structure
 The tests follow the **AAA pattern** (Arrange, Act, Assert):
 - **Arrange**: Set up test data and initial state
 - **Act**: Perform the action being tested
 - **Assert**: Verify the expected outcome
 
-### Example Test Flow
+### Example Test Flow - Complete Checkout
 ```javascript
-test('should add products to cart one by one', async ({ page }) => {
+test('should complete checkout process', async ({ page }) => {
   // ARRANGE - Set up test data
-  const products = [
-    'Sauce Labs Onesie',
-    'Sauce Labs Bike Light',
-    'Sauce Labs Bolt T-Shirt'
-  ];
-  
-  // ACT - Perform actions for each product
-  for (const productName of products) {
-    await productPage.addProductToCart(productName);
-    await productPage.clickCartButton();
-    
-    // ASSERT - Verify expected outcomes
-    await productPage.assertCartBadge(1);
-    await cartPage.assertCartPage(productName);
-    
-    // Clean up for next iteration
-    await cartPage.removeItemFromCart();
-    await cartPage.continueShopping();
-  }
+  const productName = 'Sauce Labs Onesie';
+  const firstName = 'John';
+  const lastName = 'Doe';
+  const postalCode = '12345';
+
+  // ACT - Perform complete checkout workflow
+  await productPage.addProductToCart(productName);
+  await productPage.clickCartButton();
+  await cartPage.clickCheckoutButton();
+  await checkoutCustomerInformation.fillFirstName(firstName);
+  await checkoutCustomerInformation.fillLastName(lastName);
+  await checkoutCustomerInformation.fillPostalCode(postalCode);
+  await checkoutCustomerInformation.clickContinueButton();
+  await checkoutOverview.clickFinishButton();
+
+  // ASSERT - Verify successful order completion
+  await checkoutStatus.assertPageTitle();
+  await checkoutStatus.assertCompleteOrderStatus();
+  await checkoutStatus.clickBackHomeButton();
+  await productPage.assertCartBadgeNotDisplayed();
 });
 ```
 
@@ -152,12 +174,38 @@ test('should add products to cart one by one', async ({ page }) => {
 ### ProductPage Methods
 - `addProductToCart(productName)` - Adds a specific product to cart
 - `assertCartBadge(expectedCount)` - Verifies cart badge count
+- `assertCartBadgeNotDisplayed()` - Verifies cart badge is hidden
+- `removeItemFromProductPage(productName)` - Removes item from product page
 - `clickCartButton()` - Navigates to cart page
 
 ### CartPage Methods
 - `assertCartPage(productName)` - Verifies product is in cart
 - `removeItemFromCart()` - Removes item from cart
 - `continueShopping()` - Returns to products page
+- `clickCheckoutButton()` - Proceeds to checkout
+
+### CheckoutCustomerInformation Methods
+- `assertPageTitle()` - Verifies checkout page title
+- `fillFirstName(firstName)` - Fills first name field
+- `fillLastName(lastName)` - Fills last name field
+- `fillPostalCode(postalCode)` - Fills postal code field
+- `clickContinueButton()` - Proceeds to checkout overview
+- `assertErrorMessage(errorMessage)` - Verifies error messages
+
+### CheckoutOverview Methods
+- `assertItemProductName(productName)` - Verifies product name in summary
+- `assertItemProductPrice(productName)` - Verifies product price
+- `assertItemProductQuantity(productName)` - Verifies product quantity
+- `assertPaymentInfoLabel()` - Verifies payment information
+- `assertShippingInfoLabel()` - Verifies shipping information
+- `assertTotalLabel()` - Verifies total amount
+- `clickFinishButton()` - Completes the order
+
+### CheckoutStatus Methods
+- `assertPageTitle()` - Verifies order completion page
+- `assertCompleteOrderStatus()` - Verifies order success
+- `assertCompleteOrderText()` - Verifies completion message
+- `clickBackHomeButton()` - Returns to product page
 
 ### LandingPage Methods
 - `navigate()` - Navigates to application
@@ -255,6 +303,39 @@ test('new page test', async ({ page }) => {
 7. **Method Focus**: Page objects should contain only methods, not selectors
 8. **AAA Pattern**: Structure tests with Arrange, Act, Assert sections
 9. **Page Object Model**: Use consistent POM pattern across all pages
+10. **Text Assertions**: Use `toContainText()` for partial matches, `toHaveText()` for exact matches
+
+## Assertion Best Practices
+
+### Text Assertions
+```javascript
+// Exact text match
+await expect(element).toHaveText('Exact text');
+
+// Partial text match (more flexible)
+await expect(element).toContainText('Partial text');
+
+// Case-insensitive match
+await expect(element).toContainText('text', { ignoreCase: true });
+
+// Multiple possible texts
+await expect(element).toContainText(['Option 1', 'Option 2']);
+```
+
+### Element State Assertions
+```javascript
+// Visibility
+await expect(element).toBeVisible();
+await expect(element).toBeHidden();
+
+// Interaction
+await expect(element).toBeEnabled();
+await expect(element).toBeDisabled();
+
+// Selection
+await expect(checkbox).toBeChecked();
+await expect(radio).toBeChecked();
+```
 
 ## Troubleshooting
 
@@ -264,6 +345,7 @@ test('new page test', async ({ page }) => {
 3. **Tests timing out**: Increase `TIMEOUT` value in `.env` file
 4. **Tests running too fast**: Increase `SLOW_MO` value for debugging
 5. **Module not found errors**: Clear cache with `npx playwright install --force`
+6. **Import path errors**: Ensure import paths match actual filenames (case-sensitive)
 
 ### Debug Tips
 - Use `npm run test:debug` to step through tests
@@ -271,6 +353,7 @@ test('new page test', async ({ page }) => {
 - Check `playwright-report/` for detailed test results
 - Use `trace: 'on-first-retry'` for detailed failure analysis
 - Run tests with `--headed` flag to see browser interactions
+- Use `toContainText()` instead of `toHaveText()` for more flexible assertions
 
 ## Test Results
 
@@ -280,3 +363,21 @@ The framework generates comprehensive test reports including:
 - **Screenshots**: Automatic screenshots on test failures
 - **Traces**: Detailed execution traces for debugging
 - **Cross-browser Results**: Results across Chromium, Firefox, and WebKit
+
+## E-commerce Test Scenarios Covered
+
+### Complete User Journeys
+1. **Login Flow**: User authentication and session management
+2. **Product Browsing**: Adding multiple products to cart
+3. **Cart Management**: Adding, removing, and updating cart items
+4. **Checkout Process**: Complete order placement workflow
+5. **Order Confirmation**: Post-purchase verification
+
+### Business Logic Validation
+- **Inventory Management**: Product availability and selection
+- **Pricing Calculations**: Subtotal, tax, and total calculations
+- **Order Processing**: Complete order lifecycle
+- **User Experience**: Navigation and interaction flows
+- **Error Handling**: Form validation and error messages
+
+This comprehensive test suite ensures the SauceDemo application works correctly across all major user scenarios and business requirements.

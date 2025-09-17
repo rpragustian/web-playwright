@@ -13,7 +13,7 @@ export const CheckoutOverviewLocators = {
   itemProductDescription: '.inventory_item_desc',
   paymentInfoLabel: '[data-test="payment-info-label"]',
   paymentInfoValue: '[data-test="payment-info-value"]',
-  shippingInfoLabel: '[data-test="shipping_info_label"]',
+  shippingInfoLabel: '[data-test="shipping-info-label"]',
   itemTotalLabel: '[data-test="total-info-label"]',
   subTotalLabel: '[data-test="subtotal-label"]',
   taxLabel: '[data-test="tax-label"]',

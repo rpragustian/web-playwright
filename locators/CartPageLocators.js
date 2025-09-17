@@ -6,4 +6,5 @@ export const CartPageLocators = {
   cartItemTotal: '.cart_item_total',
   removeButton: '.cart_button',
   continueShoppingButton: '[data-test="continue-shopping"]',
+  checkoutButton: '[data-test="checkout"]',
 };

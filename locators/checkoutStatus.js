@@ -5,8 +5,8 @@
 
 
 export const CheckoutStatusLocators = {
-  title: '[data-test="title"]text("Checkout: Complete!")',
-  completeOrderStatus: '[data-test="complete-header"]text("Thank you for your order!")',
-  completeOrderText: '[data-test="complete-text"]text("Your order has been dispatched, and will arrive just as fast as the pony can get there!")',
+  title: '[data-test="title"]',
+  completeOrderStatus: '[data-test="complete-header"]',
+  completeOrderText: '[data-test="complete-text"]',
   backHomeButton: '[data-test="back-to-products"]',
 };
