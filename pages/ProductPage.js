@@ -15,6 +15,14 @@ export class ProductPage {
     await expect(this.page.locator(this.locators.cartBadge)).toHaveText(expectedCount.toString());
   }
 
+  async removeItemFromProductPage(productName) {
+    await this.page.locator(this.locators.removeProductByName(productName)).click();
+  }
+
+  async assertCartBadgeNotDisplayed() {
+    await expect(this.page.locator(this.locators.cartBadge)).not.toBeVisible();
+  }
+
   async clickCartButton() {
     await this.page.locator(this.locators.cartButton).click();
   }

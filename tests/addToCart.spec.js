@@ -42,4 +42,53 @@ test.describe('Add to Cart Tests', () => {
       await page.waitForLoadState('networkidle');
     }
   });
+
+  test('should add multiple products to the cart', async ({ page }) => {
+    // Arrange
+    const products = [
+      'Sauce Labs Onesie',
+      'Sauce Labs Bike Light',
+      'Sauce Labs Bolt T-Shirt'
+    ];
+
+    // Act
+    for (const productName of products) {
+      await productPage.addProductToCart(productName);
+    }
+    await productPage.clickCartButton();
+    await page.waitForLoadState('networkidle');
+
+    // Assert
+    await productPage.assertCartBadge(products.length);
+    await cartPage.assertCartPage(products);
+  });
+
+  test('should add a product to the cart and remove it from cart page', async ({ page }) => {
+    // Arrange
+    const productName = 'Sauce Labs Onesie';
+
+    // Act
+    await productPage.addProductToCart(productName);
+    await productPage.clickCartButton();
+    await page.waitForLoadState('networkidle');
+    await cartPage.removeItemFromCart();
+    await cartPage.continueShopping();
+    await page.waitForLoadState('networkidle');
+
+    // Assert
+    await productPage.assertCartBadgeNotDisplayed();
+  });
+
+  test('should add a product to the cart and remove it from product page', async ({ page }) => {
+    // Arrange
+    const productName = 'Sauce Labs Onesie';
+
+    // Act
+    await productPage.addProductToCart(productName);
+    await productPage.assertCartBadge(1);
+    await productPage.removeItemFromProductPage(productName);
+
+    // Assert
+    await productPage.assertCartBadgeNotDisplayed();
+  });
 });

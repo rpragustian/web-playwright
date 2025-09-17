@@ -18,6 +18,7 @@ export const ProductPageLocators = {
     
   // Dynamic locator for specific product
   getProductByName: (productName) => `.inventory_item:has(.inventory_item_name:text("${productName}")) .btn_primary`,
+  removeProductByName: (productName) => `.inventory_item:has(.inventory_item_name:text("${productName}")) .btn_secondary`,
   
   productDescription: '.inventory_item_desc',
   productPrice: '.inventory_item_price',
