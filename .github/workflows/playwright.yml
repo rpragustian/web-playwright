@@ -66,9 +66,24 @@ jobs:
             npx playwright test --project=${{ github.event.inputs.browser || 'chromium' }}
           fi
         fi
+    - name: Generate Custom JSON-Based Report
+      run: npm run report:generate
+      if: ${{ !cancelled() }}
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
         name: playwright-report-${{ github.event.inputs.test_type || 'all' }}-${{ github.event.inputs.browser || 'chromium' }}
         path: playwright-report/
+        retention-days: 30
+    - uses: actions/upload-artifact@v4
+      if: ${{ !cancelled() }}
+      with:
+        name: custom-report-${{ github.event.inputs.test_type || 'all' }}-${{ github.event.inputs.browser || 'chromium' }}
+        path: test-results/custom-report.html
+        retention-days: 30
+    - uses: actions/upload-artifact@v4
+      if: ${{ !cancelled() }}
+      with:
+        name: test-results-${{ github.event.inputs.test_type || 'all' }}-${{ github.event.inputs.browser || 'chromium' }}
+        path: test-results/
         retention-days: 30

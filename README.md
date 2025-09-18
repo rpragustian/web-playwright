@@ -11,6 +11,7 @@ This project uses Playwright for end-to-end testing with a Page Object Model (PO
 │   ├── LandingPageLocators.js    # Landing page selectors
 │   ├── ProductPageLocators.js    # Product page selectors
 │   ├── CartPageLocators.js       # Cart page selectors
+│   ├── menuLocators.js           # Menu page selectors
 │   ├── checkoutCustomerInformation.js  # Checkout info page selectors
 │   ├── checkoutOverview.js       # Checkout overview page selectors
 │   └── checkoutStatus.js         # Checkout status page selectors
@@ -18,6 +19,7 @@ This project uses Playwright for end-to-end testing with a Page Object Model (PO
 │   ├── LandingPage.js            # Landing page object with methods
 │   ├── ProductPage.js            # Product page object with methods
 │   ├── CartPage.js               # Cart page object with methods
+│   ├── MenuPage.js               # Menu page object with methods
 │   ├── checkoutCustomerInformation.js  # Checkout info page object
 │   ├── checkoutOverview.js       # Checkout overview page object
 │   └── checkoutStatus.js         # Checkout status page object
@@ -41,6 +43,7 @@ This project uses Playwright for end-to-end testing with a Page Object Model (PO
 
 - Node.js (version 16 or higher)
 - npm or yarn package manager
+- Playwright (version 1.55.0)
 
 ## Setup
 
@@ -87,6 +90,7 @@ This project uses Playwright for end-to-end testing with a Page Object Model (PO
 - **Run specific test file:** `npx playwright test tests/login.spec.js`
 - **Run add to cart tests:** `npx playwright test tests/addToCart.spec.js`
 - **Run checkout tests:** `npx playwright test tests/checkout.spec.js`
+- **Run logout tests:** `npx playwright test tests/logout.spec.js`
 - **Run tests with specific browser:** `npx playwright test --project=chromium`
 - **Run tests in headed mode:** `npx playwright test --headed`
 - **Generate and view report:** `npx playwright show-report`
@@ -99,6 +103,7 @@ The framework uses a clean separation of concerns with three main components:
 - **LandingPageLocators.js**: Contains all CSS selectors for the landing page
 - **ProductPageLocators.js**: Contains selectors for product page elements
 - **CartPageLocators.js**: Contains selectors for cart page elements
+- **menuLocators.js**: Contains selectors for hamburger menu elements
 - **checkoutCustomerInformation.js**: Contains selectors for checkout form
 - **checkoutOverview.js**: Contains selectors for checkout summary
 - **checkoutStatus.js**: Contains selectors for order completion
@@ -108,6 +113,7 @@ The framework uses a clean separation of concerns with three main components:
 - **LandingPage.js**: Contains login and navigation methods
 - **ProductPage.js**: Contains product interaction methods
 - **CartPage.js**: Contains cart verification and management methods
+- **MenuPage.js**: Contains menu interaction and logout methods
 - **checkoutCustomerInformation.js**: Contains checkout form methods
 - **checkoutOverview.js**: Contains order summary methods
 - **checkoutStatus.js**: Contains order completion methods
@@ -142,6 +148,13 @@ The framework uses a clean separation of concerns with three main components:
 - ✅ **Order completion** - Tests successful order placement
 - ✅ **Post-checkout verification** - Confirms cart is cleared after order
 
+### Logout Tests (`tests/logout.spec.js`)
+- ✅ **Logout from landing page** - Tests logout functionality from main product page
+- ✅ **Logout from cart page** - Tests logout after adding items to cart
+- ✅ **Logout from checkout page** - Tests logout during checkout process
+- ✅ **Session termination verification** - Confirms user is logged out and redirected to login
+- ✅ **Cross-page logout consistency** - Ensures logout works from any page
+
 ### Test Structure
 The tests follow the **AAA pattern** (Arrange, Act, Assert):
 - **Arrange**: Set up test data and initial state
@@ -172,6 +185,29 @@ test('should complete checkout process', async ({ page }) => {
   await checkoutStatus.assertCompleteOrderStatus();
   await checkoutStatus.clickBackHomeButton();
   await productPage.assertCartBadgeNotDisplayed();
+});
+```
+
+### Example Test Flow - Logout Functionality
+```javascript
+test('should logout from cart page', async ({ page }) => {
+  // ARRANGE - Set up test data
+  const productName = 'Sauce Labs Onesie';
+
+  // ACT - Perform logout workflow
+  await productPage.addProductToCart(productName);
+  await productPage.assertCartBadge(1);
+  await productPage.clickCartButton();
+  await cartPage.assertCartPage(productName);
+  await menuPage.clickMenuButton();
+  await menuPage.clickLogoutButton();
+
+  // ASSERT - Verify successful logout
+  await landingPage.waitForLoginForm();
+  await landingPage.assertLoginFormVisible();
+  await landingPage.assertUsernameInputVisible();
+  await landingPage.assertPasswordInputVisible();
+  await landingPage.assertLoginButtonVisible();
 });
 ```
 
@@ -212,6 +248,14 @@ test('should complete checkout process', async ({ page }) => {
 - `assertCompleteOrderStatus()` - Verifies order success
 - `assertCompleteOrderText()` - Verifies completion message
 - `clickBackHomeButton()` - Returns to product page
+
+### MenuPage Methods
+- `clickMenuButton()` - Opens the hamburger menu
+- `clickLogoutButton()` - Performs logout action
+- `clickAllItemsButton()` - Navigates to all items page
+- `clickAboutButton()` - Opens about page
+- `clickResetAppStateButton()` - Resets application state
+- `clickCloseMenuButton()` - Closes the hamburger menu
 
 ### LandingPage Methods
 - `navigate()` - Navigates to application
@@ -255,6 +299,17 @@ reporter: [
 ],
 ```
 
+### Custom JSON-Based Report Generator
+The framework includes a custom report generator that parses JSON test results and provides detailed analysis:
+
+#### Features
+- **📊 Comprehensive Summary**: Total tests, passed, failed, skipped, flaky counts
+- **🌐 Browser Breakdown**: Detailed results for each browser (Chromium, Firefox, WebKit)
+- **📋 Test Details**: Individual test results with duration and status
+- **⚡ Performance Insights**: Average, fastest, and slowest test durations
+- **📄 HTML Report**: Beautiful web-based report with visual charts
+- **🎯 Pass Rate Analysis**: Success rate calculations and trends
+
 ### 1. HTML Report 📄
 - **Location**: `playwright-report/index.html`
 - **Features**: Interactive web interface with screenshots, videos, traces
@@ -278,6 +333,12 @@ reporter: [
 - **Features**: Live test progress, immediate feedback
 - **Usage**: Development and debugging
 
+### 5. Custom JSON-Based Report 🎯
+- **Location**: `test-results/custom-report.html`
+- **Features**: Comprehensive analysis with visual charts and detailed breakdowns
+- **Generate**: `npm run report:generate` or `npm run report:custom`
+- **Benefits**: Enhanced insights, performance analysis, browser-specific results
+
 ### Report File Structure
 ```
 ├── playwright-report/
@@ -286,8 +347,11 @@ reporter: [
 ├── test-results/
 │   ├── results.json            # Detailed JSON results
 │   ├── junit.xml               # JUnit XML results
+│   ├── custom-report.html      # Custom JSON-based report
 │   ├── screenshots/            # Failure screenshots
 │   └── videos/                 # Failure videos
+├── scripts/
+│   └── generate-report.js      # Custom report generator
 ```
 
 ## Screenshot and Video Capture
@@ -339,6 +403,78 @@ await page.locator('.element').screenshot({ path: 'element.png' });
 - **Test Results**: Check `test-results/` directory for individual files
 - **CI Integration**: Screenshots automatically included in CI reports
 
+### Using the Custom Report Generator
+
+#### Generate Report from Existing Results
+```bash
+# Generate custom report from existing JSON results
+npm run report:generate
+```
+
+#### Run Tests and Generate Custom Report
+```bash
+# Run all tests and generate custom report
+npm run report:custom
+```
+
+#### Custom Report Features
+The custom report generator provides:
+
+1. **📊 Executive Summary**
+   - Total test count and pass/fail statistics
+   - Overall pass rate percentage
+   - Test execution duration
+
+2. **🌐 Browser-Specific Analysis**
+   - Individual browser performance
+   - Pass rates per browser
+   - Duration comparisons
+
+3. **📋 Detailed Test Breakdown**
+   - Individual test results with status
+   - Test execution times
+   - Error details for failed tests
+
+4. **⚡ Performance Insights**
+   - Average test duration
+   - Slowest and fastest tests
+   - Performance bottlenecks identification
+
+5. **📄 Visual HTML Report**
+   - Interactive charts and graphs
+   - Responsive design for all devices
+   - Easy sharing and collaboration
+
+#### Example Output
+```
+📊 TEST EXECUTION SUMMARY
+==================================================
+🕐 Start Time: 9/18/2025, 4:32:34 AM
+⏱️  Duration: 3.24 seconds
+🔧 Playwright Version: 1.55.0
+👥 Workers: 4
+📁 Test Directory: tests
+
+📈 TEST RESULTS
+------------------------------
+✅ Expected (Passed): 1
+❌ Unexpected (Failed): 0
+⏭️  Skipped: 0
+🔄 Flaky: 0
+📊 Pass Rate: 100.0%
+
+🌐 BROWSER-SPECIFIC RESULTS
+==================================================
+
+🔍 CHROMIUM
+   ✅ Passed: 1
+   ❌ Failed: 0
+   ⏭️  Skipped: 0
+   🔄 Flaky: 0
+   📊 Pass Rate: 100.0%
+   ⏱️  Duration: 2.84s
+```
+
 ## Available Scripts
 
 | Script | Description | Output |
@@ -354,6 +490,8 @@ await page.locator('.element').screenshot({ path: 'element.png' });
 | `npm run test:json` | Run tests with JSON reporter only | JSON file |
 | `npm run test:junit` | Run tests with JUnit reporter only | XML file |
 | `npm run test:html` | Run tests with HTML reporter only | HTML report |
+| `npm run report:generate` | Generate custom JSON-based report | Console + HTML |
+| `npm run report:custom` | Run tests and generate custom report | All reports + Custom |
 
 ## Adding New Pages
 
