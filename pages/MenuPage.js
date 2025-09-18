@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test';
-import { MenuLocators } from '../locators/MenuLocators.js';
+import { MenuLocators } from '../locators/menuLocators.js';
 
 export class MenuPage {
   constructor(page) {

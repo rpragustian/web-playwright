@@ -24,9 +24,14 @@ This project uses Playwright for end-to-end testing with a Page Object Model (PO
 ├── tests/                        # Test specifications
 │   ├── login.spec.js             # Login functionality tests
 │   ├── addToCart.spec.js         # Add to cart functionality tests
-│   └── checkout.spec.js          # Complete checkout process tests
+│   ├── checkout.spec.js          # Complete checkout process tests
+│   └── logout.spec.js            # Logout functionality tests
 ├── playwright-report/            # HTML test reports (generated)
 ├── test-results/                 # Test execution results (generated)
+│   ├── screenshots/              # Screenshots on test failures
+│   ├── videos/                   # Video recordings on test failures
+│   ├── results.json              # JSON test results
+│   └── junit.xml                 # JUnit XML results
 ├── .env                          # Environment variables (create manually)
 ├── playwright.config.js          # Playwright configuration
 └── package.json                  # Dependencies and scripts
@@ -54,7 +59,7 @@ This project uses Playwright for end-to-end testing with a Page Object Model (PO
    ```env
    BASE_URL=https://www.saucedemo.com
    USERNAME=standard_user
-   PASSWORD=secret_sauce
+   TEST_PASSWORD=secret_sauce
    TIMEOUT=30000
    SLOW_MO=100
    ```
@@ -121,6 +126,7 @@ The framework uses a clean separation of concerns with three main components:
 - ✅ **Invalid credentials error handling** - Tests error message for wrong credentials
 - ✅ **Empty credentials validation** - Tests error message for empty fields
 - ✅ **Form field clearing functionality** - Tests ability to clear input fields
+- ✅ **Multiple user types testing** - Tests different user accounts
 
 ### Add to Cart Tests (`tests/addToCart.spec.js`)
 - ✅ **Multiple product testing** - Tests adding different products to cart
@@ -222,28 +228,132 @@ test('should complete checkout process', async ({ page }) => {
 - **Timeouts**: 30 seconds for actions and navigation
 - **Slow Motion**: 100ms delay between actions (configurable)
 - **Tracing**: Enabled on first retry for debugging
-- **Reporting**: HTML reports with detailed test results
+- **Screenshots**: Captured automatically on test failures
+- **Video Recording**: Records test execution on failures
+- **Multiple Reporters**: HTML, JSON, JUnit XML, and Console output
 
 ### Environment Variables
 All configuration can be overridden via environment variables:
 - `BASE_URL` - Application URL
 - `USERNAME` - Default username for tests
-- `PASSWORD` - Default password for tests
+- `TEST_PASSWORD` - Test password (stored securely in .env)
 - `TIMEOUT` - Global timeout for actions
 - `SLOW_MO` - Delay between actions in milliseconds
 
+## Test Reporting System
+
+### Multiple Report Formats
+The framework generates comprehensive reports in multiple formats:
+
+```javascript
+// In playwright.config.js
+reporter: [
+  ['html', { outputFolder: 'playwright-report' }],     // HTML report
+  ['json', { outputFile: 'test-results/results.json' }], // JSON report
+  ['junit', { outputFile: 'test-results/junit.xml' }],   // JUnit XML report
+  ['list']                                               // Console output
+],
+```
+
+### 1. HTML Report 📄
+- **Location**: `playwright-report/index.html`
+- **Features**: Interactive web interface with screenshots, videos, traces
+- **View**: `npm run test:report` or `npx playwright show-report`
+- **Benefits**: Visual debugging, easy navigation, comprehensive test details
+
+### 2. JSON Report 📋
+- **Location**: `test-results/results.json`
+- **Features**: Machine-readable format with complete test data
+- **Usage**: Programmatic analysis, CI/CD integration, custom reporting
+- **Content**: Test configuration, results, timing, metadata, traces
+
+### 3. JUnit XML Report 🔧
+- **Location**: `test-results/junit.xml`
+- **Features**: Standard format for CI systems
+- **Usage**: Jenkins, Azure DevOps, GitHub Actions integration
+- **Content**: Test results in XML format with pass/fail status
+
+### 4. Console Reporter 📝
+- **Output**: Real-time console output during test execution
+- **Features**: Live test progress, immediate feedback
+- **Usage**: Development and debugging
+
+### Report File Structure
+```
+├── playwright-report/
+│   ├── index.html              # Interactive HTML report
+│   └── assets/                 # CSS, JS, images
+├── test-results/
+│   ├── results.json            # Detailed JSON results
+│   ├── junit.xml               # JUnit XML results
+│   ├── screenshots/            # Failure screenshots
+│   └── videos/                 # Failure videos
+```
+
+## Screenshot and Video Capture
+
+### Automatic Failure Capture
+The framework automatically captures screenshots and videos when tests fail:
+
+```javascript
+// In playwright.config.js
+use: {
+  screenshot: 'only-on-failure',    // Screenshots on test failures
+  video: 'retain-on-failure',       // Video recordings on failures
+  trace: 'on-first-retry',          // Detailed traces for debugging
+}
+```
+
+### File Organization
+When tests fail, the following files are generated:
+
+```
+test-results/
+├── test-name-chromium/
+│   ├── test-failure.png          # Screenshot at failure point
+│   └── video.webm                # Video recording of test execution
+├── test-name-firefox/
+│   ├── test-failure.png
+│   └── video.webm
+└── test-name-webkit/
+    ├── test-failure.png
+    └── video.webm
+```
+
+### Manual Screenshots
+You can also take manual screenshots in your tests:
+
+```javascript
+// Take screenshot at any point
+await page.screenshot({ path: 'custom-screenshot.png' });
+
+// Take full page screenshot
+await page.screenshot({ path: 'full-page.png', fullPage: true });
+
+// Take screenshot of specific element
+await page.locator('.element').screenshot({ path: 'element.png' });
+```
+
+### Viewing Results
+- **HTML Report**: `npx playwright show-report` (includes screenshots)
+- **Test Results**: Check `test-results/` directory for individual files
+- **CI Integration**: Screenshots automatically included in CI reports
+
 ## Available Scripts
 
-| Script | Description |
-|--------|-------------|
-| `npm test` | Run all tests in headless mode |
-| `npm run test:headed` | Run tests with browser visible |
-| `npm run test:debug` | Debug mode with browser dev tools |
-| `npm run test:ui` | Interactive UI mode for test development |
-| `npm run test:report` | View HTML test report |
-| `npm run test:chromium` | Run tests only in Chromium |
-| `npm run test:firefox` | Run tests only in Firefox |
-| `npm run test:webkit` | Run tests only in WebKit |
+| Script | Description | Output |
+|--------|-------------|---------|
+| `npm test` | Run all tests with all reporters | HTML + JSON + JUnit + Console |
+| `npm run test:headed` | Run tests with browser visible | All reports |
+| `npm run test:debug` | Debug mode with browser dev tools | All reports |
+| `npm run test:ui` | Interactive UI mode for test development | All reports |
+| `npm run test:report` | View HTML test report | Opens browser |
+| `npm run test:chromium` | Run tests only in Chromium | All reports |
+| `npm run test:firefox` | Run tests only in Firefox | All reports |
+| `npm run test:webkit` | Run tests only in WebKit | All reports |
+| `npm run test:json` | Run tests with JSON reporter only | JSON file |
+| `npm run test:junit` | Run tests with JUnit reporter only | XML file |
+| `npm run test:html` | Run tests with HTML reporter only | HTML report |
 
 ## Adding New Pages
 
@@ -304,6 +414,9 @@ test('new page test', async ({ page }) => {
 8. **AAA Pattern**: Structure tests with Arrange, Act, Assert sections
 9. **Page Object Model**: Use consistent POM pattern across all pages
 10. **Text Assertions**: Use `toContainText()` for partial matches, `toHaveText()` for exact matches
+11. **Security**: Store sensitive data (passwords) in `.env` files, not in code
+12. **Debugging**: Use screenshots and videos for failure analysis
+13. **Reporting**: Leverage multiple report formats for different use cases
 
 ## Assertion Best Practices
 
@@ -346,6 +459,8 @@ await expect(radio).toBeChecked();
 4. **Tests running too fast**: Increase `SLOW_MO` value for debugging
 5. **Module not found errors**: Clear cache with `npx playwright install --force`
 6. **Import path errors**: Ensure import paths match actual filenames (case-sensitive)
+7. **Screenshots not generated**: Check `test-results/` directory after test failures
+8. **Reports not generated**: Verify reporter configuration in `playwright.config.js`
 
 ### Debug Tips
 - Use `npm run test:debug` to step through tests
@@ -354,13 +469,20 @@ await expect(radio).toBeChecked();
 - Use `trace: 'on-first-retry'` for detailed failure analysis
 - Run tests with `--headed` flag to see browser interactions
 - Use `toContainText()` instead of `toHaveText()` for more flexible assertions
+- Check `test-results/` directory for screenshots and videos on failures
+- Use `npx playwright show-report` to view comprehensive test results
+- Parse `results.json` for programmatic analysis
+- Use `junit.xml` for CI/CD pipeline integration
 
 ## Test Results
 
 The framework generates comprehensive test reports including:
-- **HTML Reports**: Detailed test execution results with screenshots
+- **HTML Reports**: Interactive web interface with detailed test results
+- **JSON Reports**: Machine-readable format for programmatic analysis
+- **JUnit XML**: Standard format for CI/CD integration
 - **Test Results**: Individual test outcomes and timing
 - **Screenshots**: Automatic screenshots on test failures
+- **Videos**: Video recordings of failed test executions
 - **Traces**: Detailed execution traces for debugging
 - **Cross-browser Results**: Results across Chromium, Firefox, and WebKit
 

@@ -10,7 +10,10 @@
     "test:report": "playwright show-report",
     "test:chromium": "playwright test --project=chromium",
     "test:firefox": "playwright test --project=firefox",
-    "test:webkit": "playwright test --project=webkit"
+    "test:webkit": "playwright test --project=webkit",
+    "test:json": "playwright test --reporter=json",
+    "test:junit": "playwright test --reporter=junit",
+    "test:html": "playwright test --reporter=html"
   },
   "keywords": [],
   "author": "",
