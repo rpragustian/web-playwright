@@ -1,12 +1,15 @@
 import { test, expect } from '@playwright/test';
 import { LandingPage } from '../pages/LandingPage.js';
+import { MenuPage } from '../pages/MenuPage.js';
 
 test.describe('Login Tests', () => {
   let landingPage;
-
+  let menuPage;
+  
   test.beforeEach(async ({ page }) => {
     landingPage = new LandingPage(page);
     await landingPage.navigate();
+    menuPage = new MenuPage(page);
   });
 
   test('should display login form elements', async () => {
@@ -23,15 +26,46 @@ test.describe('Login Tests', () => {
   });
 
   test('should login with valid credentials', async () => {
-    // ARRANGE - Set up test data
+    // ARRANGE - Set up test data (username in code, password from env)
     const username = 'standard_user';
-    const password = 'secret_sauce';
+    const password = process.env.TEST_PASSWORD;
     
     // ACT - Perform login action
     await landingPage.login(username, password);
     
     // ASSERT - Verify successful login redirect
     await landingPage.assertURL(/.*inventory/);
+  });
+
+  test('should login with locked out user', async () => {
+    // ARRANGE - Set up test data (username in code, password from env)
+    const username = 'locked_out_user';
+    const password = process.env.TEST_PASSWORD;
+    const expectedErrorMessage = 'Epic sadface: Sorry, this user has been locked out.';
+    
+    // ACT - Perform login action
+    await landingPage.login(username, password);
+    
+    // ASSERT - Verify error message
+    await landingPage.assertErrorMessage(expectedErrorMessage);
+  });
+
+  test('should login with multiple usernames and passwords', async () => {
+    // ARRANGE - Set up test data (usernames in code, password from env)
+    const usernames = ['standard_user', 'problem_user', 'performance_glitch_user'];
+    const password = process.env.TEST_PASSWORD;
+    
+    // ACT - Perform login action for each user
+    for (const username of usernames) {
+      await landingPage.login(username, password);
+      
+      // ASSERT - Verify successful login redirect
+      await landingPage.assertURL(/.*inventory/);
+      
+      // Clean up - logout before next iteration
+      await menuPage.clickMenuButton();
+      await menuPage.clickLogoutButton();
+    }
   });
 
   test('should show error message with invalid credentials', async () => {

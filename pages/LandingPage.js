@@ -1,5 +1,6 @@
 import { expect } from '@playwright/test';
 import { LandingPageLocators } from '../locators/LandingPageLocators.js';
+
 import dotenv from 'dotenv';
 
 // Load environment variables
@@ -50,7 +51,7 @@ export class LandingPage {
    */
   async loginWithDefaultCredentials() {
     const username = process.env.USERNAME || 'standard_user';
-    const password = process.env.PASSWORD || 'secret_sauce';
+    const password = process.env.PASSWORD;
     await this.login(username, password);
   }
 
