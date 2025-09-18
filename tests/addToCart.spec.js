@@ -79,7 +79,7 @@ test.describe('Add to Cart Tests', () => {
     await productPage.assertCartBadgeNotDisplayed();
   });
 
-  test('should add a product to the cart and remove it from product page', async ({ page }) => {
+  test('should add a product to the cart and remove it from product page', async ({}) => {
     // Arrange
     const productName = 'Sauce Labs Onesie';
 
@@ -90,5 +90,69 @@ test.describe('Add to Cart Tests', () => {
 
     // Assert
     await productPage.assertCartBadgeNotDisplayed();
+  });
+
+  test('should filter products by name (a to z)', async ({}) => {
+    // Arrange
+    const filterOption = 'name (a to z)';
+    const productNames = [
+      'Sauce Labs Backpack',
+      'Sauce Labs Bike Light'
+    ];
+
+    // Act
+    await productPage.filterProducts(filterOption);
+
+    // Assert
+    await productPage.assertProductNameByIndex(0, productNames[0]);
+    await productPage.assertProductNameByIndex(1, productNames[1]);
+  });
+
+  test('should filter products by name (z to a)', async ({}) => {
+    // Arrange
+    const filterOption = 'name (z to a)';
+    const productNames = [
+      'Test.allTheThings() T-Shirt (Red)',
+      'Sauce Labs Onesie'
+    ];
+
+    // Act
+    await productPage.filterProducts(filterOption);
+
+    // Assert
+    await productPage.assertProductNameByIndex(0, productNames[0]);
+    await productPage.assertProductNameByIndex(1, productNames[1]);
+  });
+  
+  test('should filter products by price (low to high)', async ({}) => {
+    // Arrange
+    const filterOption = 'price (low to high)';
+    const productPrices = [
+      '$7.99',
+      '$9.99'
+    ];
+
+    // Act
+    await productPage.filterProducts(filterOption);
+
+    // Assert
+    await productPage.assertProductPriceByIndex(0, productPrices[0]);
+    await productPage.assertProductPriceByIndex(1, productPrices[1]);
+  });
+
+  test('should filter products by price (high to low)', async ({}) => {
+    // Arrange
+    const filterOption = 'price (high to low)';
+    const productPrices = [
+      '$49.99',
+      '$29.99'
+    ];
+
+    // Act
+    await productPage.filterProducts(filterOption);
+
+    // Assert
+    await productPage.assertProductPriceByIndex(0, productPrices[0]);
+    await productPage.assertProductPriceByIndex(1, productPrices[1]);
   });
 });

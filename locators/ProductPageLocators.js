@@ -26,7 +26,11 @@ export const ProductPageLocators = {
   removeButton: '.btn_secondary',
   
   // Filter elements
-  productSort: '[data-test="product_sort_container"]',
+  productSort: '[data-test="product-sort-container"]',
+  sortByNameAZ: 'option[value="az"]',
+  sortByNameZA: 'option[value="za"]',
+  sortByPriceLowHigh: 'option[value="lohi"]',
+  sortByPriceHighLow: 'option[value="hilo"]',
   
   // Footer elements
   footer: '.footer',
