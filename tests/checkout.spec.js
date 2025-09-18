@@ -74,4 +74,116 @@ test.describe('Checkout Tests', () => {
     await page.waitForLoadState('networkidle');
     await productPage.assertCartBadgeNotDisplayed();
   });
+
+  test('should display error message when first name is empty', async ({ page }) => {
+        // Arrange 
+        const productName = 'Sauce Labs Onesie';
+        const firstName = '';
+        const lastName = 'Doe';
+        const postalCode = '12345';
+        const expectedErrorMessage = 'Error: First Name is required';
+    
+        // Act
+        await productPage.addProductToCart(productName);
+        await productPage.assertCartBadge(1);
+        await productPage.clickCartButton();
+        await page.waitForLoadState('networkidle');
+    
+        await productPage.assertCartBadge(1);
+        await cartPage.assertCartPage(productName);
+        await cartPage.clickCheckoutButton();
+        
+        await checkoutCustomerInformation.assertPageTitle();
+        await checkoutCustomerInformation.fillFirstName(firstName);
+        await checkoutCustomerInformation.fillLastName(lastName);
+        await checkoutCustomerInformation.fillPostalCode(postalCode);
+        await checkoutCustomerInformation.clickContinueButton();
+
+        // Assert
+        await checkoutCustomerInformation.assertErrorMessage(expectedErrorMessage);
+  });
+
+  test('should display error message when last name is empty', async ({ page }) => {
+    // Arrange 
+    const productName = 'Sauce Labs Onesie';
+    const firstName = 'John';
+    const lastName = '';
+    const postalCode = '12345';
+    const expectedErrorMessage = 'Error: Last Name is required';
+
+    // Act
+    await productPage.addProductToCart(productName);
+    await productPage.assertCartBadge(1);
+    await productPage.clickCartButton();
+    await page.waitForLoadState('networkidle');
+
+    await productPage.assertCartBadge(1);
+    await cartPage.assertCartPage(productName);
+    await cartPage.clickCheckoutButton();
+    
+    await checkoutCustomerInformation.assertPageTitle();
+    await checkoutCustomerInformation.fillFirstName(firstName);
+    await checkoutCustomerInformation.fillLastName(lastName);
+    await checkoutCustomerInformation.fillPostalCode(postalCode);
+    await checkoutCustomerInformation.clickContinueButton();
+
+    // Assert
+    await checkoutCustomerInformation.assertErrorMessage(expectedErrorMessage);
+});
+
+test('should display error message when postal code is empty', async ({ page }) => {
+    // Arrange 
+    const productName = 'Sauce Labs Onesie';
+    const firstName = 'John';
+    const lastName = 'Doe';
+    const postalCode = '';
+    const expectedErrorMessage = 'Error: Postal Code is required';
+
+    // Act
+    await productPage.addProductToCart(productName);
+    await productPage.assertCartBadge(1);
+    await productPage.clickCartButton();
+    await page.waitForLoadState('networkidle');
+
+    await productPage.assertCartBadge(1);
+    await cartPage.assertCartPage(productName);
+    await cartPage.clickCheckoutButton();
+    
+    await checkoutCustomerInformation.assertPageTitle();
+    await checkoutCustomerInformation.fillFirstName(firstName);
+    await checkoutCustomerInformation.fillLastName(lastName);
+    await checkoutCustomerInformation.fillPostalCode(postalCode);
+    await checkoutCustomerInformation.clickContinueButton();
+
+    // Assert
+    await checkoutCustomerInformation.assertErrorMessage(expectedErrorMessage);
+});
+
+test('should display error message when all required fields are empty', async ({ page }) => {
+    // Arrange 
+    const productName = 'Sauce Labs Onesie';
+    const firstName = '';
+    const lastName = '';
+    const postalCode = '';
+    const expectedErrorMessage = 'Error: First Name is required';
+
+    // Act
+    await productPage.addProductToCart(productName);
+    await productPage.assertCartBadge(1);
+    await productPage.clickCartButton();
+    await page.waitForLoadState('networkidle');
+
+    await productPage.assertCartBadge(1);
+    await cartPage.assertCartPage(productName);
+    await cartPage.clickCheckoutButton();
+    
+    await checkoutCustomerInformation.assertPageTitle();
+    await checkoutCustomerInformation.fillFirstName(firstName);
+    await checkoutCustomerInformation.fillLastName(lastName);
+    await checkoutCustomerInformation.fillPostalCode(postalCode);
+    await checkoutCustomerInformation.clickContinueButton();
+
+    // Assert
+    await checkoutCustomerInformation.assertErrorMessage(expectedErrorMessage);
+});
 });
