@@ -4,6 +4,27 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: 'Type of tests to run'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+        - all
+        - smoke
+        - regression
+      browser:
+        description: 'Browser to test'
+        required: false
+        default: 'chromium'
+        type: choice
+        options:
+        - chromium
+        - firefox
+        - webkit
+        - all
 jobs:
   test:
     timeout-minutes: 60
@@ -17,11 +38,26 @@ jobs:
       run: npm ci
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
+    - name: Display test configuration
+      run: |
+        echo "Test Type: ${{ github.event.inputs.test_type || 'all' }}"
+        echo "Browser: ${{ github.event.inputs.browser || 'chromium' }}"
     - name: Run Playwright tests
-      run: npx playwright test
+      run: |
+        if [ "${{ github.event.inputs.test_type }}" = "smoke" ]; then
+          npx playwright test --grep "smoke" --project=${{ github.event.inputs.browser || 'chromium' }}
+        elif [ "${{ github.event.inputs.test_type }}" = "regression" ]; then
+          npx playwright test --grep "regression" --project=${{ github.event.inputs.browser || 'chromium' }}
+        else
+          if [ "${{ github.event.inputs.browser }}" = "all" ]; then
+            npx playwright test
+          else
+            npx playwright test --project=${{ github.event.inputs.browser || 'chromium' }}
+          fi
+        fi
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
-        name: playwright-report
+        name: playwright-report-${{ github.event.inputs.test_type || 'all' }}-${{ github.event.inputs.browser || 'chromium' }}
         path: playwright-report/
         retention-days: 30

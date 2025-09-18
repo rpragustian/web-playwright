@@ -3,8 +3,8 @@ import { LandingPage } from '../pages/LandingPage.js';
 import { ProductPage } from '../pages/ProductPage.js';
 import { CartPage } from '../pages/CartPage.js';
 import { CheckoutCustomerInformation } from '../pages/CheckoutCustomerInformation.js';
-import { CheckoutOverview } from '../pages/checkoutOverview.js';
-import { CheckoutStatus } from '../pages/checkoutStatus.js';
+import { CheckoutOverview } from '../pages/CheckoutOverview.js';
+import { CheckoutStatus } from '../pages/CheckoutStatus.js';
 
 test.describe('Checkout Tests', () => {
   let landingPage;
