@@ -26,42 +26,7 @@ on:
         - webkit
         - all
 jobs:
-  smoke-test:
-    timeout-minutes: 30
-    runs-on: ubuntu-latest
-    environment: dev
-    env:
-      BASE_URL: ${{ vars.BASE_URL }}
-      TIMEOUT: ${{ vars.TIMEOUT }}
-      SLOW_MO: ${{ vars.SLOW_MO }}
-      USERNAME: ${{ vars.USERNAME }}
-      PASSWORD: ${{ vars.PASSWORD }}
-      TEST_PASSWORD: ${{ vars.TEST_PASSWORD }}
-    steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version: lts/*
-    - name: Install dependencies
-      run: npm ci
-    - name: Install Playwright Browsers
-      run: npx playwright install --with-deps
-    - name: Display smoke test configuration
-      run: |
-        echo "Smoke Test: Login scenario only"
-        echo "Browser: ${{ github.event.inputs.browser || 'chromium' }}"
-        echo "Base URL: $BASE_URL"
-        echo "Username: $USERNAME"
-        echo "Timeout: $TIMEOUT"
-    - name: Run smoke test (login only)
-      run: |
-        if [ "${{ github.event.inputs.browser }}" = "all" ]; then
-          npx playwright test --grep "smoke"
-        else
-          npx playwright test --grep "smoke" --project=${{ github.event.inputs.browser || 'chromium' }}
-        fi
   tests:
-    needs: smoke-test
     timeout-minutes: 60
     runs-on: ubuntu-latest
     environment: dev
@@ -77,6 +42,14 @@ jobs:
     - uses: actions/setup-node@v4
       with:
         node-version: lts/*
+        cache: 'npm'
+    - name: Cache Playwright browsers
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-browsers-${{ hashFiles('package-lock.json') }}
+        restore-keys: |
+          playwright-browsers-
     - name: Install dependencies
       run: npm ci
     - name: Install Playwright Browsers
@@ -88,13 +61,24 @@ jobs:
         echo "Base URL: $BASE_URL"
         echo "Username: $USERNAME"
         echo "Timeout: $TIMEOUT"
-    - name: Run Playwright tests
+    - name: Run Smoke Tests First
       run: |
-        if [ "${{ github.event.inputs.test_type }}" = "smoke" ]; then
-          echo "Smoke tests already completed in smoke-test job"
+        echo "Running smoke tests first..."
+        if [ "${{ github.event.inputs.browser }}" = "all" ]; then
+          npx playwright test --grep "smoke"
+        else
           npx playwright test --grep "smoke" --project=${{ github.event.inputs.browser || 'chromium' }}
-        elif [ "${{ github.event.inputs.test_type }}" = "regression" ]; then
-          npx playwright test --grep "regression" --project=${{ github.event.inputs.browser || 'chromium' }}
+        fi
+    - name: Run Full Test
+      if: success() && github.event.inputs.test_type != 'smoke'
+      run: |
+        echo "Smoke tests passed! Running full test suite..."
+        if [ "${{ github.event.inputs.test_type }}" = "regression" ]; then
+          if [ "${{ github.event.inputs.browser }}" = "all" ]; then
+            npx playwright test --grep "regression"
+          else
+            npx playwright test --grep "regression" --project=${{ github.event.inputs.browser || 'chromium' }}
+          fi
         else
           if [ "${{ github.event.inputs.browser }}" = "all" ]; then
             npx playwright test
