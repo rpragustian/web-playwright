@@ -55,7 +55,11 @@ jobs:
         echo "Timeout: $TIMEOUT"
     - name: Run smoke test (login only)
       run: |
-        npx playwright test --grep "smoke" --project=${{ github.event.inputs.browser || 'chromium' }}
+        if [ "${{ github.event.inputs.browser }}" = "all" ]; then
+          npx playwright test --grep "smoke"
+        else
+          npx playwright test --grep "smoke" --project=${{ github.event.inputs.browser || 'chromium' }}
+        fi
   tests:
     needs: smoke-test
     timeout-minutes: 60
