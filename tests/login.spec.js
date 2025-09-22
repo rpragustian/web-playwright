@@ -25,7 +25,7 @@ test.describe('Login Tests', () => {
     await landingPage.assertLoginButtonVisible();
   });
 
-  test('should login with valid credentials', async () => {
+  test('should login with valid credentials @smoke', async () => {
     // ARRANGE - Set up test data (username in code, password from env)
     const username = 'standard_user';
     const password = process.env.TEST_PASSWORD;

@@ -26,7 +26,38 @@ on:
         - webkit
         - all
 jobs:
-  test:
+  smoke-test:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    environment: dev
+    env:
+      BASE_URL: ${{ vars.BASE_URL }}
+      TIMEOUT: ${{ vars.TIMEOUT }}
+      SLOW_MO: ${{ vars.SLOW_MO }}
+      USERNAME: ${{ vars.USERNAME }}
+      PASSWORD: ${{ vars.PASSWORD }}
+      TEST_PASSWORD: ${{ vars.TEST_PASSWORD }}
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: lts/*
+    - name: Install dependencies
+      run: npm ci
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps
+    - name: Display smoke test configuration
+      run: |
+        echo "Smoke Test: Login scenario only"
+        echo "Browser: ${{ github.event.inputs.browser || 'chromium' }}"
+        echo "Base URL: $BASE_URL"
+        echo "Username: $USERNAME"
+        echo "Timeout: $TIMEOUT"
+    - name: Run smoke test (login only)
+      run: |
+        npx playwright test --grep "smoke" --project=${{ github.event.inputs.browser || 'chromium' }}
+  tests:
+    needs: smoke-test
     timeout-minutes: 60
     runs-on: ubuntu-latest
     environment: dev
@@ -56,6 +87,7 @@ jobs:
     - name: Run Playwright tests
       run: |
         if [ "${{ github.event.inputs.test_type }}" = "smoke" ]; then
+          echo "Smoke tests already completed in smoke-test job"
           npx playwright test --grep "smoke" --project=${{ github.event.inputs.browser || 'chromium' }}
         elif [ "${{ github.event.inputs.test_type }}" = "regression" ]; then
           npx playwright test --grep "regression" --project=${{ github.event.inputs.browser || 'chromium' }}
